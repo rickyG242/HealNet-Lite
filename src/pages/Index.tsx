@@ -1,9 +1,10 @@
-
 import React, { useState } from 'react';
 import { DonationForm } from '../components/DonationForm';
 import { NeedsList } from '../components/NeedsList';
 import { MatchResults } from '../components/MatchResults';
 import { Heart, HandHeart, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export interface Donation {
   id: string;
@@ -157,7 +158,7 @@ const Index = () => {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-orange-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <img 
                 src="/lovable-uploads/9463649d-6f3d-4f8b-aa4e-6a1f272c06f5.png" 
@@ -168,6 +169,16 @@ const Index = () => {
                 <h1 className="text-3xl font-bold text-gray-900">Kids Cancer Foundation</h1>
                 <p className="text-sm text-gray-600">Donation Matching Platform</p>
               </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link to="/login" className="text-orange-600 hover:text-orange-700 font-medium">
+                Sign In
+              </Link>
+              <Link to="/register">
+                <Button className="bg-orange-600 hover:bg-orange-700">
+                  Register Organization
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
