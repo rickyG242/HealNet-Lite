@@ -1,23 +1,33 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
+
+export interface Organization {
+  id: string;
+  email: string;
+  organization_name: string;
+  contact_person: string;
+  phone: string;
+  location: string;
+  organization_type: 'hospital' | 'partner';
+  verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface User {
   id: string;
   email: string;
-  organizationName: string;
-  contactPerson: string;
-  phone: string;
-  location: string;
-  organizationType: 'hospital' | 'partner';
-  verified: boolean;
-  registrationDate: Date;
+  organization?: Organization;
 }
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -42,36 +52,73 @@ export const useAuth = () => {
   return context;
 };
 
-// Simple hash function for password security (in production, use proper bcrypt)
-const simpleHash = (password: string): string => {
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    const char = password.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return hash.toString(36);
-};
-
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('kidscanser_user');
-    const sessionToken = localStorage.getItem('kidscanser_session');
-    
-    if (savedUser && sessionToken) {
-      try {
-        const userData = JSON.parse(savedUser);
-        setUser(userData);
-      } catch (error) {
-        localStorage.removeItem('kidscanser_user');
-        localStorage.removeItem('kidscanser_session');
-      }
+  // Fetch organization data for authenticated user
+  const fetchUserOrganization = async (userId: string): Promise<Organization | null> => {
+    try {
+      const { data: userAuth } = await supabase
+        .from('user_auth')
+        .select('organization_id')
+        .eq('user_id', userId)
+        .single();
+
+      if (!userAuth) return null;
+
+      const { data: organization } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', userAuth.organization_id)
+        .single();
+
+      return organization as Organization;
+    } catch (error) {
+      console.error('Error fetching organization:', error);
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        
+        if (session?.user) {
+          const organization = await fetchUserOrganization(session.user.id);
+          setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            organization
+          });
+        } else {
+          setUser(null);
+        }
+        
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      
+      if (session?.user) {
+        const organization = await fetchUserOrganization(session.user.id);
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          organization
+        });
+      }
+      
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const register = async (userData: RegisterData): Promise<{ success: boolean; error?: string }> => {
@@ -87,42 +134,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, error: 'Password must be at least 8 characters long' };
       }
 
-      // Check if user already exists
-      const existingUsers = JSON.parse(localStorage.getItem('kidscanser_users') || '[]');
-      const emailExists = existingUsers.some((u: any) => u.email === userData.email);
-      
-      if (emailExists) {
-        return { success: false, error: 'An account with this email already exists' };
+      const redirectUrl = `${window.location.origin}/`;
+
+      // Sign up user with Supabase Auth and organization metadata
+      const { error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            organization_name: userData.organizationName,
+            contact_person: userData.contactPerson,
+            phone: userData.phone,
+            location: userData.location,
+            organization_type: userData.organizationType
+          }
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
       }
-
-      // Create new user
-      const newUser: User = {
-        id: Date.now().toString(),
-        email: userData.email,
-        organizationName: userData.organizationName,
-        contactPerson: userData.contactPerson,
-        phone: userData.phone,
-        location: userData.location,
-        organizationType: userData.organizationType,
-        verified: false, // In production, would require email verification
-        registrationDate: new Date(),
-      };
-
-      // Store user credentials securely
-      const hashedPassword = simpleHash(userData.password);
-      const userCredentials = {
-        email: userData.email,
-        passwordHash: hashedPassword,
-        userId: newUser.id,
-      };
-
-      // Save to localStorage (simulating database)
-      existingUsers.push(newUser);
-      const existingCredentials = JSON.parse(localStorage.getItem('kidscanser_credentials') || '[]');
-      existingCredentials.push(userCredentials);
-      
-      localStorage.setItem('kidscanser_users', JSON.stringify(existingUsers));
-      localStorage.setItem('kidscanser_credentials', JSON.stringify(existingCredentials));
 
       return { success: true };
     } catch (error) {
@@ -136,30 +168,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsLoading(true);
 
     try {
-      const credentials = JSON.parse(localStorage.getItem('kidscanser_credentials') || '[]');
-      const users = JSON.parse(localStorage.getItem('kidscanser_users') || '[]');
-      
-      const hashedPassword = simpleHash(password);
-      const userCredential = credentials.find((c: any) => 
-        c.email === email && c.passwordHash === hashedPassword
-      );
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      if (!userCredential) {
-        return { success: false, error: 'Invalid email or password' };
+      if (error) {
+        return { success: false, error: error.message };
       }
 
-      const userData = users.find((u: any) => u.id === userCredential.userId);
-      
-      if (!userData) {
-        return { success: false, error: 'User account not found' };
-      }
-
-      // Create session
-      const sessionToken = Date.now().toString();
-      localStorage.setItem('kidscanser_session', sessionToken);
-      localStorage.setItem('kidscanser_user', JSON.stringify(userData));
-      
-      setUser(userData);
       return { success: true };
     } catch (error) {
       return { success: false, error: 'Login failed. Please try again.' };
@@ -168,14 +185,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('kidscanser_user');
-    localStorage.removeItem('kidscanser_session');
+  const logout = async (): Promise<void> => {
+    await supabase.auth.signOut();
     setUser(null);
+    setSession(null);
   };
 
   const value: AuthContextType = {
     user,
+    session,
     login,
     register,
     logout,
