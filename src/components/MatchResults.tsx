@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,38 +12,38 @@ interface MatchResultsProps {
 
 export const MatchResults: React.FC<MatchResultsProps> = ({ matches }) => {
   const getMatchQuality = (score: number) => {
-    if (score >= 80) return { label: 'Excellent', color: 'bg-green-100 text-green-800 border-green-200' };
-    if (score >= 60) return { label: 'Good', color: 'bg-blue-100 text-blue-800 border-blue-200' };
-    if (score >= 40) return { label: 'Fair', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
-    return { label: 'Partial', color: 'bg-gray-100 text-gray-800 border-gray-200' };
+    if (score >= 80) return { label: 'Excellent', color: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' };
+    if (score >= 60) return { label: 'Good', color: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' };
+    if (score >= 40) return { label: 'Fair', color: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' };
+    return { label: 'Partial', color: 'bg-muted text-muted-foreground border-border' };
   };
 
-  const handleContactHospital = (match: Match) => {
+  const handleContactOrganization = (match: Match) => {
+    const orgName = match.need.organization?.organization_name || 'Organization';
     toast({
-      title: "Contact Information Copied!",
-      description: `${match.need.hospitalName} contact details are ready for you.`,
+      title: "Contact Information Ready!",
+      description: `${orgName} contact details are available below.`,
     });
     
-    // In a real app, this would open email client or copy contact info
-    console.log('Contacting hospital:', match.need);
+    console.log('Contacting organization:', match.need);
   };
 
   const handleConfirmDonation = (match: Match) => {
+    const orgName = match.need.organization?.organization_name || 'Organization';
     toast({
       title: "Donation Confirmed!",
-      description: `Thank you! We've notified ${match.need.hospitalName} about your donation.`,
+      description: `Thank you! We've notified ${orgName} about your donation.`,
     });
     
-    // In a real app, this would send notifications and update the database
     console.log('Donation confirmed:', match);
   };
 
   if (matches.length === 0) {
     return (
       <div className="text-center py-12">
-        <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-600 mb-2">No matches yet</h3>
-        <p className="text-gray-500">Submit a donation to see potential matches with hospital needs.</p>
+        <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No matches yet</h3>
+        <p className="text-muted-foreground">Submit a donation to see potential matches with organization needs.</p>
       </div>
     );
   }
@@ -56,10 +55,10 @@ export const MatchResults: React.FC<MatchResultsProps> = ({ matches }) => {
         
         return (
           <Card key={`${match.donation.id}-${match.need.id}`} className="shadow-lg border-0 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b">
+            <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 border-b">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
-                  <div className="bg-gradient-to-r from-green-600 to-blue-600 p-2 rounded-full">
+                  <div className="bg-gradient-to-r from-primary to-accent p-2 rounded-full">
                     <CheckCircle className="h-5 w-5 text-white" />
                   </div>
                   <span>Match Found #{index + 1}</span>
@@ -69,7 +68,7 @@ export const MatchResults: React.FC<MatchResultsProps> = ({ matches }) => {
                     <Star className="h-3 w-3" />
                     <span>{matchQuality.label} Match</span>
                   </Badge>
-                  <Badge variant="outline" className="text-gray-600">
+                  <Badge variant="outline" className="text-muted-foreground">
                     Score: {match.matchScore}%
                   </Badge>
                 </div>
@@ -80,60 +79,62 @@ export const MatchResults: React.FC<MatchResultsProps> = ({ matches }) => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Your Donation */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 flex items-center space-x-2">
-                    <Package className="h-4 w-4 text-green-600" />
+                  <h3 className="font-semibold text-foreground flex items-center space-x-2">
+                    <Package className="h-4 w-4 text-primary" />
                     <span>Your Donation</span>
                   </h3>
                   
-                  <div className="bg-green-50 p-4 rounded-lg space-y-2">
-                    <p className="font-medium text-green-900">{match.donation.item}</p>
-                    <p className="text-sm text-green-700">Category: {match.donation.category}</p>
-                    <p className="text-sm text-green-700">Quantity: {match.donation.quantity}</p>
-                    <p className="text-sm text-green-700">Location: {match.donation.location}</p>
+                  <div className="bg-primary/5 p-4 rounded-lg space-y-2">
+                    <p className="font-medium text-primary">{match.donation.item}</p>
+                    <p className="text-sm text-muted-foreground">Category: {match.donation.category}</p>
+                    <p className="text-sm text-muted-foreground">Quantity: {match.donation.quantity}</p>
+                    <p className="text-sm text-muted-foreground">Location: {match.donation.location}</p>
                     {match.donation.description && (
-                      <p className="text-sm text-green-700">Notes: {match.donation.description}</p>
-                    )}
-                  </div>
-
-                  <div className="text-sm text-gray-600">
-                    <p><strong>Donor:</strong> {match.donation.donorName}</p>
-                    <p><strong>Email:</strong> {match.donation.donorEmail}</p>
-                    {match.donation.donorPhone && (
-                      <p><strong>Phone:</strong> {match.donation.donorPhone}</p>
+                      <p className="text-sm text-muted-foreground">Notes: {match.donation.description}</p>
                     )}
                   </div>
                 </div>
 
-                {/* Hospital Need */}
+                {/* Organization Need */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 flex items-center space-x-2">
-                    <Building2 className="h-4 w-4 text-blue-600" />
-                    <span>Hospital Need</span>
+                  <h3 className="font-semibold text-foreground flex items-center space-x-2">
+                    <Building2 className="h-4 w-4 text-accent" />
+                    <span>Organization Need</span>
                   </h3>
                   
-                  <div className="bg-blue-50 p-4 rounded-lg space-y-2">
-                    <p className="font-medium text-blue-900">{match.need.hospitalName}</p>
-                    <p className="text-sm text-blue-700">Needs: {match.need.item}</p>
-                    <p className="text-sm text-blue-700">Category: {match.need.category}</p>
-                    <p className="text-sm text-blue-700">Quantity: {match.need.quantity}</p>
-                    <p className="text-sm text-blue-700">Urgency: {match.need.urgency}</p>
+                  <div className="bg-accent/5 p-4 rounded-lg space-y-2">
+                    <p className="font-medium text-accent-foreground">
+                      {match.need.organization?.organization_name || 'Organization'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Needs: {match.need.item}</p>
+                    <p className="text-sm text-muted-foreground">Category: {match.need.category}</p>
+                    <p className="text-sm text-muted-foreground">Quantity: {match.need.quantity}</p>
+                    <p className="text-sm text-muted-foreground">Urgency: {match.need.urgency}</p>
                   </div>
 
                   <div className="space-y-2 text-sm">
-                    <p className="font-medium text-gray-900">Contact: {match.need.contactPerson}</p>
-                    <div className="flex items-center space-x-2 text-blue-600">
+                    <p className="font-medium text-foreground">
+                      Contact: {match.need.organization?.contact_person || 'Contact Person'}
+                    </p>
+                    <div className="flex items-center space-x-2 text-primary">
                       <Mail className="h-3 w-3" />
-                      <a href={`mailto:${match.need.contactEmail}`} className="hover:underline">
-                        {match.need.contactEmail}
+                      <a 
+                        href={`mailto:${match.need.organization?.email}`} 
+                        className="hover:underline"
+                      >
+                        {match.need.organization?.email}
                       </a>
                     </div>
-                    <div className="flex items-center space-x-2 text-blue-600">
+                    <div className="flex items-center space-x-2 text-primary">
                       <Phone className="h-3 w-3" />
-                      <a href={`tel:${match.need.contactPhone}`} className="hover:underline">
-                        {match.need.contactPhone}
+                      <a 
+                        href={`tel:${match.need.organization?.phone}`} 
+                        className="hover:underline"
+                      >
+                        {match.need.organization?.phone}
                       </a>
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
+                    <div className="flex items-center space-x-2 text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>{match.need.location}</span>
                     </div>
@@ -142,28 +143,30 @@ export const MatchResults: React.FC<MatchResultsProps> = ({ matches }) => {
               </div>
 
               {/* Dropoff Instructions */}
-              <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                <h4 className="font-medium text-orange-900 mb-2 flex items-center space-x-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>Dropoff Instructions</span>
-                </h4>
-                <p className="text-sm text-orange-800">{match.need.dropoffInstructions}</p>
-              </div>
+              {match.need.dropoff_instructions && (
+                <div className="mt-6 p-4 bg-accent/10 rounded-lg border border-accent/20">
+                  <h4 className="font-medium text-accent-foreground mb-2 flex items-center space-x-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>Dropoff Instructions</span>
+                  </h4>
+                  <p className="text-sm text-muted-foreground">{match.need.dropoff_instructions}</p>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Button
-                  onClick={() => handleContactHospital(match)}
+                  onClick={() => handleContactOrganization(match)}
                   variant="outline"
-                  className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                  className="flex-1"
                 >
                   <Phone className="h-4 w-4 mr-2" />
-                  Contact Hospital
+                  Contact Organization
                 </Button>
                 
                 <Button
                   onClick={() => handleConfirmDonation(match)}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
+                  className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Confirm Donation

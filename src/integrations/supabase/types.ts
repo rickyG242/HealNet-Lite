@@ -14,6 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
+      donations: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          donor_id: string
+          id: string
+          item: string
+          location: string
+          quantity: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          donor_id: string
+          id?: string
+          item: string
+          location: string
+          quantity: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          donor_id?: string
+          id?: string
+          item?: string
+          location?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string
+          donation_id: string
+          id: string
+          match_score: number
+          need_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          donation_id: string
+          id?: string
+          match_score?: number
+          need_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          donation_id?: string
+          id?: string
+          match_score?: number
+          need_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_donation_id_fkey"
+            columns: ["donation_id"]
+            isOneToOne: false
+            referencedRelation: "donations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_need_id_fkey"
+            columns: ["need_id"]
+            isOneToOne: false
+            referencedRelation: "needs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      needs: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          dropoff_instructions: string | null
+          id: string
+          item: string
+          location: string
+          organization_id: string
+          quantity: number
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          dropoff_instructions?: string | null
+          id?: string
+          item: string
+          location: string
+          organization_id: string
+          quantity: number
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          dropoff_instructions?: string | null
+          id?: string
+          item?: string
+          location?: string
+          organization_id?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "needs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           contact_person: string
@@ -50,6 +195,42 @@ export type Database = {
           phone?: string
           updated_at?: string
           verified?: boolean
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+          user_type?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+          user_type?: string
         }
         Relationships: []
       }

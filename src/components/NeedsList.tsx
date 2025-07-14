@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,13 +12,13 @@ export const NeedsList: React.FC<NeedsListProps> = ({ needs }) => {
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case 'high':
-        return 'bg-red-100 text-red-800 border-red-200';
+        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800';
       case 'low':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -30,7 +29,8 @@ export const NeedsList: React.FC<NeedsListProps> = ({ needs }) => {
     return <Clock className="h-4 w-4" />;
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric',
@@ -41,9 +41,9 @@ export const NeedsList: React.FC<NeedsListProps> = ({ needs }) => {
   if (needs.length === 0) {
     return (
       <div className="text-center py-12">
-        <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-600 mb-2">No current needs</h3>
-        <p className="text-gray-500">All current hospital needs have been fulfilled. Check back later!</p>
+        <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-muted-foreground mb-2">No current needs</h3>
+        <p className="text-muted-foreground">All current organization needs have been fulfilled. Check back later!</p>
       </div>
     );
   }
@@ -55,8 +55,10 @@ export const NeedsList: React.FC<NeedsListProps> = ({ needs }) => {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-2">
-                <Building2 className="h-5 w-5 text-blue-600" />
-                <CardTitle className="text-lg text-gray-900">{need.hospitalName}</CardTitle>
+                <Building2 className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg text-foreground">
+                  {need.organization?.organization_name || 'Organization'}
+                </CardTitle>
               </div>
               <Badge className={`${getUrgencyColor(need.urgency)} flex items-center space-x-1`}>
                 {getUrgencyIcon(need.urgency)}
@@ -67,58 +69,62 @@ export const NeedsList: React.FC<NeedsListProps> = ({ needs }) => {
           
           <CardContent className="space-y-4">
             {/* Item Details */}
-            <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="bg-primary/5 p-4 rounded-lg">
               <div className="flex items-center space-x-2 mb-2">
-                <Package className="h-4 w-4 text-blue-600" />
-                <h4 className="font-semibold text-gray-900">Needed Item</h4>
+                <Package className="h-4 w-4 text-primary" />
+                <h4 className="font-semibold text-foreground">Needed Item</h4>
               </div>
-              <p className="text-lg font-medium text-blue-900">{need.item}</p>
-              <p className="text-sm text-gray-600">Category: {need.category}</p>
-              <p className="text-sm text-gray-600">Quantity needed: {need.quantity}</p>
+              <p className="text-lg font-medium text-primary">{need.item}</p>
+              <p className="text-sm text-muted-foreground">Category: {need.category}</p>
+              <p className="text-sm text-muted-foreground">Quantity needed: {need.quantity}</p>
             </div>
 
             {/* Contact Information */}
             <div className="space-y-2">
-              <h4 className="font-semibold text-gray-900 flex items-center space-x-1">
+              <h4 className="font-semibold text-foreground flex items-center space-x-1">
                 <Phone className="h-4 w-4" />
                 <span>Contact</span>
               </h4>
-              <p className="text-sm text-gray-600">{need.contactPerson}</p>
-              <div className="flex items-center space-x-2 text-sm text-blue-600">
+              <p className="text-sm text-muted-foreground">
+                {need.organization?.contact_person || 'Contact Person'}
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-primary">
                 <Mail className="h-3 w-3" />
                 <a 
-                  href={`mailto:${need.contactEmail}`}
+                  href={`mailto:${need.organization?.email}`}
                   className="hover:underline"
                 >
-                  {need.contactEmail}
+                  {need.organization?.email}
                 </a>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-blue-600">
+              <div className="flex items-center space-x-2 text-sm text-primary">
                 <Phone className="h-3 w-3" />
                 <a 
-                  href={`tel:${need.contactPhone}`}
+                  href={`tel:${need.organization?.phone}`}
                   className="hover:underline"
                 >
-                  {need.contactPhone}
+                  {need.organization?.phone}
                 </a>
               </div>
             </div>
 
             {/* Location */}
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <MapPin className="h-4 w-4" />
               <span>{need.location}</span>
             </div>
 
             {/* Dropoff Instructions */}
-            <div className="bg-green-50 p-3 rounded-lg">
-              <h5 className="font-medium text-green-900 mb-1">Dropoff Instructions</h5>
-              <p className="text-sm text-green-800">{need.dropoffInstructions}</p>
-            </div>
+            {need.dropoff_instructions && (
+              <div className="bg-accent/10 p-3 rounded-lg">
+                <h5 className="font-medium text-accent-foreground mb-1">Dropoff Instructions</h5>
+                <p className="text-sm text-muted-foreground">{need.dropoff_instructions}</p>
+              </div>
+            )}
 
             {/* Timestamp */}
-            <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t">
-              <span>Posted: {formatDate(need.timestamp)}</span>
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+              <span>Posted: {formatDate(need.created_at)}</span>
               <span className="flex items-center space-x-1">
                 <Clock className="h-3 w-3" />
                 <span>Active</span>
