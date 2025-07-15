@@ -220,7 +220,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <img 
-                src="/lovable-uploads/9463649d-6f3d-4f8b-aa4e-6a1f272c06f5.png" 
+                src="/lovable-uploads/0334a326-61ab-4ca0-aa5e-8669ef9b9cca.png" 
                 alt="HealNet Lite Logo" 
                 className="h-16 w-16"
               />
@@ -355,7 +355,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <img 
-              src="/lovable-uploads/9463649d-6f3d-4f8b-aa4e-6a1f272c06f5.png" 
+              src="/lovable-uploads/0334a326-61ab-4ca0-aa5e-8669ef9b9cca.png" 
               alt="HealNet Lite Logo" 
               className="h-8 w-8"
             />
