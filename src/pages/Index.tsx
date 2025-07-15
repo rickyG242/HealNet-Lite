@@ -222,7 +222,8 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/9463649d-6f3d-4f8b-aa4e-6a1f272c06f5.png" 
                 alt="HealNet Lite Logo" 
-                className="h-16 w-16"
+                className="h-16 w-16 mix-blend-multiply dark:mix-blend-screen filter drop-shadow-none"
+                style={{ filter: 'brightness(0) invert(1)' }}
               />
               <div>
                 <h1 className="text-3xl font-bold text-purple-900">HealNet Lite</h1>
@@ -357,7 +358,8 @@ const Index = () => {
             <img 
               src="/lovable-uploads/9463649d-6f3d-4f8b-aa4e-6a1f272c06f5.png" 
               alt="HealNet Lite Logo" 
-              className="h-8 w-8"
+              className="h-8 w-8 mix-blend-multiply dark:mix-blend-screen filter drop-shadow-none"
+              style={{ filter: 'brightness(0) invert(1)' }}
             />
             <span className="text-xl font-semibold">HealNet Lite</span>
           </div>
