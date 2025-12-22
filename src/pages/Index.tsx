@@ -222,7 +222,7 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/0334a326-61ab-4ca0-aa5e-8669ef9b9cca.png" 
                 alt="HealNet Lite Logo" 
-                className="h-16 w-16"
+                className="max-h-16 w-auto object-contain"
               />
               <div>
                 <h1 className="text-3xl font-bold text-purple-900">HealNet Lite</h1>
