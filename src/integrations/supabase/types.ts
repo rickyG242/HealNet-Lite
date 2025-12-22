@@ -7,10 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -61,51 +61,6 @@ export type Database = {
           },
         ]
       }
-      matches: {
-        Row: {
-          created_at: string
-          donation_id: string
-          id: string
-          match_score: number
-          need_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          donation_id: string
-          id?: string
-          match_score?: number
-          need_id: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          donation_id?: string
-          id?: string
-          match_score?: number
-          need_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "matches_donation_id_fkey"
-            columns: ["donation_id"]
-            isOneToOne: false
-            referencedRelation: "donations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_need_id_fkey"
-            columns: ["need_id"]
-            isOneToOne: false
-            referencedRelation: "needs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       needs: {
         Row: {
           category: string
@@ -133,7 +88,7 @@ export type Database = {
           quantity: number
           status?: string
           updated_at?: string
-          urgency?: string
+          urgency: string
         }
         Update: {
           category?: string
@@ -208,7 +163,7 @@ export type Database = {
           phone: string | null
           updated_at: string
           user_id: string
-          user_type: string
+          user_type: string | null
         }
         Insert: {
           created_at?: string
@@ -219,7 +174,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id: string
-          user_type?: string
+          user_type?: string | null
         }
         Update: {
           created_at?: string
@@ -230,7 +185,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
-          user_type?: string
+          user_type?: string | null
         }
         Relationships: []
       }
