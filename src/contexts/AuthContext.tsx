@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
@@ -16,10 +15,24 @@ export interface Organization {
   updated_at: string;
 }
 
+export interface Donor {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  location?: string;
+  preferences?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface User {
   id: string;
   email: string;
   organization?: Organization;
+  donor?: Donor;
+  accountType: 'organization' | 'donor';
 }
 
 interface AuthContextType {
@@ -35,11 +48,17 @@ export interface RegisterData {
   email: string;
   password: string;
   confirmPassword: string;
-  organizationName: string;
-  contactPerson: string;
+  accountType: 'organization' | 'donor';
+  // Organization fields
+  organizationName?: string;
+  contactPerson?: string;
+  organizationType?: 'hospital' | 'partner';
+  // Donor fields
+  firstName?: string;
+  lastName?: string;
+  // Common fields
   phone: string;
   location: string;
-  organizationType: 'hospital' | 'partner';
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,27 +76,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch organization data for authenticated user
-  const fetchUserOrganization = async (userId: string): Promise<Organization | null> => {
+  // Fetch user data for authenticated user
+  const fetchUserData = async (userId: string): Promise<{ organization?: Organization; donor?: Donor }> => {
     try {
       const { data: userAuth } = await supabase
         .from('user_auth')
-        .select('organization_id')
+        .select('organization_id, donor_id')
         .eq('user_id', userId)
         .single();
 
-      if (!userAuth) return null;
+      if (!userAuth) return {};
 
-      const { data: organization } = await supabase
-        .from('organizations')
-        .select('*')
-        .eq('id', userAuth.organization_id)
-        .single();
+      if (userAuth.organization_id) {
+        const { data: organization } = await supabase
+          .from('organizations')
+          .select('*')
+          .eq('id', userAuth.organization_id)
+          .single();
+        return { organization };
+      } else if (userAuth.donor_id) {
+        const { data: donor } = await supabase
+          .from('donors')
+          .select('*')
+          .eq('id', userAuth.donor_id)
+          .single();
+        return { donor };
+      }
 
-      return organization as Organization;
+      return {};
     } catch (error) {
-      console.error('Error fetching organization:', error);
-      return null;
+      console.error('Error fetching user data:', error);
+      return {};
     }
   };
 
@@ -88,11 +117,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSession(session);
         
         if (session?.user) {
-          const organization = await fetchUserOrganization(session.user.id);
+          const { organization, donor } = await fetchUserData(session.user.id);
           setUser({
             id: session.user.id,
             email: session.user.email!,
-            organization
+            organization,
+            donor,
+            accountType: organization ? 'organization' : 'donor'
           });
         } else {
           setUser(null);
@@ -107,11 +138,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setSession(session);
       
       if (session?.user) {
-        const organization = await fetchUserOrganization(session.user.id);
+        const { organization, donor } = await fetchUserData(session.user.id);
         setUser({
           id: session.user.id,
           email: session.user.email!,
-          organization
+          organization,
+          donor,
+          accountType: organization ? 'organization' : 'donor'
         });
       }
       
@@ -136,19 +169,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const redirectUrl = `${window.location.origin}/`;
 
-      // Sign up user with Supabase Auth and organization metadata
+      // Prepare user metadata based on account type
+      const userMetadata = userData.accountType === 'donor' ? {
+        account_type: 'donor',
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        phone: userData.phone,
+        location: userData.location
+      } : {
+        account_type: 'organization',
+        organization_name: userData.organizationName,
+        contact_person: userData.contactPerson,
+        phone: userData.phone,
+        location: userData.location,
+        organization_type: userData.organizationType
+      };
+
+      // Sign up user with Supabase Auth
       const { error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: {
-            organization_name: userData.organizationName,
-            contact_person: userData.contactPerson,
-            phone: userData.phone,
-            location: userData.location,
-            organization_type: userData.organizationType
-          }
+          data: userMetadata
         }
       });
 
@@ -156,8 +199,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, error: error.message };
       }
 
+      // Create donor or organization record
+      if (userData.accountType === 'donor') {
+        const { error: donorError } = await supabase
+          .from('donors')
+          .insert([
+            {
+              user_id: supabase.auth.user()?.id,
+              first_name: userData.firstName,
+              last_name: userData.lastName,
+              phone: userData.phone,
+              location: userData.location
+            }
+          ]);
+
+        if (donorError) {
+          console.error('Error creating donor record:', donorError);
+          return { success: false, error: 'Registration failed. Please try again.' };
+        }
+      } else {
+        const { error: organizationError } = await supabase
+          .from('organizations')
+          .insert([
+            {
+              user_id: supabase.auth.user()?.id,
+              organization_name: userData.organizationName,
+              contact_person: userData.contactPerson,
+              phone: userData.phone,
+              location: userData.location,
+              organization_type: userData.organizationType
+            }
+          ]);
+
+        if (organizationError) {
+          console.error('Error creating organization record:', organizationError);
+          return { success: false, error: 'Registration failed. Please try again.' };
+        }
+      }
+
       return { success: true };
     } catch (error) {
+      console.error('Registration error:', error);
       return { success: false, error: 'Registration failed. Please try again.' };
     } finally {
       setIsLoading(false);

@@ -5,20 +5,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Package, MapPin, User, LogIn } from 'lucide-react';
+import { Heart, Package, MapPin, User, LogIn, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
+import { geocodingService } from '@/services/geocodingService';
 
 interface DonationFormProps {
-  onSubmit: (donation: {
-    item: string;
-    category: string;
-    quantity: number;
-    location: string;
-    description?: string;
-  }) => void;
-  loading?: boolean;
+  onSuccess?: (donationId: string) => void;
+  redirectOnSuccess?: boolean;
 }
 
 const categories = [
@@ -42,8 +38,10 @@ const locations = [
   'Other',
 ];
 
-export const DonationForm: React.FC<DonationFormProps> = ({ onSubmit, loading = false }) => {
+export const DonationForm: React.FC<DonationFormProps> = ({ onSuccess, redirectOnSuccess = true }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     item: '',
     category: '',
@@ -55,34 +53,88 @@ export const DonationForm: React.FC<DonationFormProps> = ({ onSubmit, loading = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to submit a donation.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Basic validation
     if (!formData.item || !formData.category || !formData.location) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
+        title: 'Missing information',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
       });
       return;
     }
-
-    onSubmit(formData);
-
-    // Reset form
-    setFormData({
-      item: '',
-      category: '',
-      quantity: 1,
-      location: '',
-      description: '',
-    });
+    
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to submit a donation.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Geocode the location
+      const geocodeResult = await geocodingService.geocode(formData.location);
+      
+      if (geocodeResult.quality === 'failed') {
+        throw new Error('Could not determine the location. Please try a more specific address.');
+      }
+      
+      // Create Supabase client
+      const supabase = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_ANON_KEY
+      );
+      
+      // Insert donation into database
+      const { data: donation, error } = await supabase
+        .from('donations')
+        .insert({
+          donor_id: user.id,
+          item: formData.item,
+          category: formData.category,
+          quantity: formData.quantity,
+          location: formData.location,
+          description: formData.description,
+          lat: geocodeResult.lat,
+          lng: geocodeResult.lng,
+          formatted_address: geocodeResult.formattedAddress,
+          geocode_quality: geocodeResult.quality,
+          status: 'pending',
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
+      
+      // Call the success callback if provided
+      if (onSuccess) {
+        onSuccess(donation.id);
+      }
+      
+      // Redirect to matches page if enabled
+      if (redirectOnSuccess) {
+        navigate(`/donations/${donation.id}/matches`);
+      }
+      
+      // Show success message
+      toast({
+        title: 'Donation submitted!',
+        description: 'Finding the best matches for your donation...',
+      });
+      
+    } catch (error) {
+      console.error('Error submitting donation:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to submit donation',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string | number) => {
@@ -116,6 +168,15 @@ export const DonationForm: React.FC<DonationFormProps> = ({ onSubmit, loading = 
               </Button>
             </Link>
           </div>
+          {!user && (
+            <div className="text-center text-sm text-muted-foreground mt-4">
+              <p>Don't have an account?{' '}
+                <Link to="/register" className="text-primary hover:underline">
+                  Sign up
+                </Link>
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -223,13 +284,13 @@ export const DonationForm: React.FC<DonationFormProps> = ({ onSubmit, loading = 
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground py-3 text-lg font-semibold transition-all duration-200 transform hover:scale-105"
           >
-            {loading ? (
+            {isSubmitting ? (
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Finding Matches...</span>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                <span>Processing...</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">

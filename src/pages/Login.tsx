@@ -52,7 +52,7 @@ const Login = () => {
             className="h-16 w-16 mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="text-gray-600">Sign in to your organization account</p>
+          <p className="text-gray-600">Sign in to your account</p>
         </div>
 
         <Card className="shadow-lg border-0">
@@ -72,7 +72,7 @@ const Login = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="your@organization.com"
+                  placeholder="your@email.com"
                   required
                 />
               </div>
