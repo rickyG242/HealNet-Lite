@@ -1,52 +1,124 @@
-# Welcome to Project HealNet Lite
+# HealNet-Lite
 
-## Project info
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-181818?style=flat&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-**URL**: https://lovable.dev/projects/626cd1ba-a819-46c9-a81c-1f834bfda144
+HealNet-Lite is a platform connecting donors with healthcare organizations in need of medical supplies and equipment. Our intelligent matching system uses semantic search and geospatial analysis to create meaningful connections between available resources and critical needs.
 
-## How can I edit this code?
+## 🚀 Features
 
-There are several ways of editing your application.
+### 🤖 Intelligent Matching
+- **Semantic Search**: Uses AI-powered embeddings to match similar items (e.g., "N95 masks" with "respirator PPE")
+- **Geospatial Analysis**: Finds the closest matches based on physical location
+- **Smart Scoring**: Prioritizes matches based on urgency, quantity, and relevance
 
-**Use your preferred IDE**
+### 🏥 For Healthcare Organizations
+- Post supply needs with detailed requirements
+- Receive real-time notifications of matching donations
+- Manage incoming donations and communicate with donors
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+### ❤️ For Donors
+- Easily post available medical supplies
+- See which organizations need your donations most
+- Get directions and logistics for drop-off
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 🛠️ Technical Highlights
+- **Frontend**: React with TypeScript and Vite
+- **Styling**: Tailwind CSS with shadcn/ui components
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
+- **AI/ML**: pgvector for semantic search, Xenova Transformers for embeddings
+- **Geospatial**: PostGIS for location-based queries
+- **Real-time Updates**: WebSockets for live notifications
 
-Follow these steps:
+## 🛠️ Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Prerequisites
+- Node.js 18+ (recommend using [nvm](https://github.com/nvm-sh/nvm))
+- npm or yarn
+- Supabase account
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Setup
 
-# Step 3: Install the necessary dependencies.
-npm i
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/rickyG242/HealNet-Lite.git
+   cd HealNet-Lite
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Edit a file directly in GitHub**
+3. **Set up environment variables**
+   Create a `.env` file in the root directory with:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_MAPBOX_ACCESS_TOKEN=your_mapbox_token
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+4. **Run database migrations**
+   ```bash
+   npx supabase migration up
+   ```
 
-**Use GitHub Codespaces**
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+6. **Open in your browser**
+   ```
+   http://localhost:5173
+   ```
 
-## What technologies are used for this project?
+## 🗄️ Database Schema
 
-This project is built with:
+### Key Tables
+- `donations`: Donated medical supplies
+- `needs`: Organization requests for supplies
+- `organizations`: Healthcare facilities
+- `donors`: Individual donors
+- `geocoding_cache`: Cached geocoding results
+- `matches`: Connection between donations and needs
+
+### Spatial Features
+- PostGIS for geographic calculations
+- pgvector for semantic search
+- Geospatial indexes for fast location queries
+
+## 🤝 Contributing
+
+We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Supabase](https://supabase.com/) for the amazing backend
+- [Vite](https://vitejs.dev/) for the build tooling
+- [shadcn/ui](https://ui.shadcn.com/) for the component library
+- [Mapbox](https://www.mapbox.com/) for mapping services
+
+## 📞 Contact
+
+For questions or support, please open an issue or contact the maintainers.
+
+---
+
+Built with ❤️ for better healthcare access
 
 - Vite
 - TypeScript
